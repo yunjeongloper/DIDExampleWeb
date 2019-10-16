@@ -6,6 +6,8 @@ import EthCrypto from 'eth-crypto';
 
 let connector: WalletConnect;
 
+const identity = EthCrypto.createIdentity();
+
 interface IPayloadData {
     method: string;
     params: {
@@ -20,8 +22,11 @@ export const handleCallRequest = async (walletConnector: WalletConnect, payload:
 
     if (payload.method === 'check_user_info') {
         const result = await checkUserInfo(payload.params);
-        returnUserInfoCheckResult(result);
+        returnUserInfoCheckResult(result, payload);
+        return result;
     }
+    
+    return false;
 };
 
 async function checkUserInfo(params: IPayloadData['params']) {
@@ -38,12 +43,25 @@ async function checkUserInfo(params: IPayloadData['params']) {
     }
 };
 
-function returnUserInfoCheckResult(result: boolean) {
-    console.log('request method / confirm_user_info '); // tslint:disable-line  
+function requestRegisterDapp() {
+    console.log('send custom method : register_dapp '); // tslint:disable-line  
+    console.log(identity); // tslint:disable-line  
+
+    sendCustomRequest('register_dapp', {
+        address: identity.publicKey
+    })
+};
+
+function returnUserInfoCheckResult(result: boolean, payload: object) {
+    console.log('send custom request : confirm_user_info '); // tslint:disable-line  
 
     sendCustomRequest('confirm_user_info', {
         verifyResult: result
     })
+
+    if (result) {
+        requestRegisterDapp();
+    }
 }
 
 async function sendCustomRequest(method: string, params: IPayloadData['params']) {    

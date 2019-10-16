@@ -225,20 +225,24 @@ class App extends React.Component<any, any> {
       }
 
       // 로그인(user address와 signature 비교) 후 실행
-      // this.onConnect(payload);
+      this.onConnect(payload);
     });
 
     /**
      * 추가된 이벤트 핸들러 by SIGNEE
      */
-    walletConnector.on('call_request', (error, payload) => {
+    walletConnector.on('call_request', async (error, payload) => {
       console.log('on call_request'); // tslint:disable-line
 
       if (error) {
         throw error;
       }
 
-      handleCallRequest(walletConnector, payload);
+      const result = await handleCallRequest(walletConnector, payload);
+      
+      if (result) {
+        await this.setState({connected: true});
+      }
     });
 
     walletConnector.on("disconnect", (error, payload) => {
@@ -281,7 +285,7 @@ class App extends React.Component<any, any> {
     const { chainId, accounts } = payload.params[0];
     const address = accounts[0];
     await this.setState({
-      connected: true,
+      // connected: true,
       chainId,
       accounts,
       address
